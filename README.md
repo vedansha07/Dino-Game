@@ -41,6 +41,3 @@ A pixel-perfect browser game built with React and Vite, inspired by the classic 
     ```
 
 4.  Open `http://localhost:5173` in your browser.
-
-## 📄 License
-MIT
