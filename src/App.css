@@ -1,10 +1,13 @@
-body, html {
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+body,
+html {
   margin: 0;
   padding: 0;
   height: 100%;
   overflow: hidden;
-  background-color: #f5f5f5;
-  font-family: Arial, sans-serif;
+  background-color: #ffffff;
+  font-family: 'Press Start 2P', cursive;
 }
 
 .game-container {
@@ -13,44 +16,54 @@ body, html {
   left: 50%;
   transform: translate(-50%, -50%);
   width: 600px;
+  /* Reverted to 600px for better alignment */
   text-align: center;
 }
 
 .game-area {
   position: relative;
-  width: 600px;
-  height: 150px;
-  background-color: #f7f7f7;
+  width: 100%;
+  height: 200px;
+  background-color: transparent;
   overflow: hidden;
-  border-bottom: 1px solid #525252;
-  margin-bottom: 20px;
+  border-bottom: 2px solid #535353;
+  margin-bottom: 0px;
 }
 
 .dino {
   position: absolute;
   bottom: 0;
   left: 50px;
-  width: 40px;
-  height: 60px;
-  background-color: #525252;
+  width: 44px;
+  /* Adjusted slightly for the asset */
+  height: 47px;
+  /* Adjusted slightly for the asset */
+  background-image: url('./assets/dino.png');
+  background-size: contain;
+  /* Changed to contain to avoid cropping */
+  background-repeat: no-repeat;
   z-index: 2;
 }
 
 .obstacle {
   position: absolute;
   bottom: 0;
-  width: 20px;
-  background-color: #525252;
+  /* Width and height are set dynamically in inline styles now for variety,
+     but we can keep defaults here or just rely on inline styles.
+     The background properties are key. */
+  background-image: url('./assets/cactus.png');
+  background-size: 100% 100%;
+  /* Stretch to fit the new larger dimensions */
+  background-repeat: no-repeat;
+  background-position: bottom;
   z-index: 1;
 }
 
 .ground {
-  position: absolute;
-  bottom: 0;
-  width: 100%;
-  height: 1px;
-  background-color: #525252;
-  z-index: 3;
+  /* The border-bottom of game-area acts as the ground line now,
+     but we can keep this for parallax later if needed or remove it.
+     For now, let's hide it to avoid double lines. */
+  display: none;
 }
 
 .start-screen {
@@ -59,8 +72,12 @@ body, html {
   left: 50%;
   transform: translate(-50%, -50%);
   text-align: center;
-  color: #525252;
-  font-size: 14px;
+  color: #535353;
+  font-size: 16px;
+  /* Adjusted size */
+  width: 100%;
+  z-index: 10;
+  line-height: 1.5;
 }
 
 .game-over {
@@ -69,31 +86,46 @@ body, html {
   left: 50%;
   transform: translate(-50%, -50%);
   text-align: center;
-  color: #525252;
-  font-size: 14px;
-  background-color: rgba(255, 255, 255, 0.8);
+  color: #535353;
+  font-size: 16px;
+  /* Adjusted size */
+  background-color: transparent;
+  /* Removed semi-transparent white box */
   padding: 15px;
-  border-radius: 5px;
+  width: 100%;
+  z-index: 10;
 }
 
-.game-over-score, .game-over-high-score {
-  margin-bottom: 5px;
+.game-over-score,
+.game-over-high-score {
+  margin-bottom: 15px;
+  display: none;
+  /* Hide these in game over screen as they are already visible at top */
 }
 
 .game-over-restart {
-  margin-top: 15px;
+  margin-top: 20px;
   cursor: pointer;
-  text-decoration: underline;
+  font-size: 20px;
+  /* Adjusted size */
 }
 
 .score-display {
-  font-size: 18px;
-  color: #525252;
+  position: absolute;
+  top: -40px;
+  /* Moved outside/above game area */
+  right: 0;
+  font-size: 16px;
+  /* Adjusted size */
+  color: #535353;
   display: flex;
-  justify-content: center;
-  gap: 30px;
+  justify-content: flex-end;
+  gap: 20px;
+  width: 100%;
+  box-sizing: border-box;
 }
 
-.current-score, .best-score {
-  font-weight: bold;
+.current-score,
+.best-score {
+  font-weight: normal;
 }

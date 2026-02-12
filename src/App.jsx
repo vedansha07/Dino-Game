@@ -14,8 +14,9 @@ const App = () => {
   const dinoRef = useRef(null);
   const animationRef = useRef();
   const lastObstacleTimeRef = useRef(0);
+  const lastScoreTimeRef = useRef(0); // Ref for score throttling
   const obstacleSpeed = 6;
-  const spawnRate = 1500;
+  const spawnRate = 1800; // Slower spawn rate for better pacing
 
   // Jump function
   const jump = useCallback(() => {
@@ -23,12 +24,12 @@ const App = () => {
       setIsJumping(true);
       let jumpHeight = 0;
       const jumpUp = setInterval(() => {
-        jumpHeight += 4;
+        jumpHeight += 5; // Slightly higher jump
         setDinoPosition(jumpHeight);
-        if (jumpHeight >= 100) {
+        if (jumpHeight >= 120) { // Higher jump peak
           clearInterval(jumpUp);
           const jumpDown = setInterval(() => {
-            jumpHeight -= 4;
+            jumpHeight -= 5;
             setDinoPosition(jumpHeight);
             if (jumpHeight <= 0) {
               clearInterval(jumpDown);
@@ -50,6 +51,7 @@ const App = () => {
     setDinoPosition(0);
     setIsJumping(false);
     lastObstacleTimeRef.current = 0;
+    lastScoreTimeRef.current = 0;
   };
 
   // Handle key press
@@ -77,17 +79,19 @@ const App = () => {
     const gameRect = gameAreaRef.current.getBoundingClientRect();
 
     // Convert dino position to game area coordinates
+    // Adjust hitboxes slightly for more forgiving gameplay with images
+    const padding = 10; // Increased padding for tighter hitboxes with transparent assets
     const dino = {
-      left: dinoRect.left - gameRect.left,
-      right: dinoRect.right - gameRect.left,
-      bottom: dinoRect.bottom - gameRect.top,
-      top: dinoRect.top - gameRect.top,
+      left: dinoRect.left - gameRect.left + padding,
+      right: dinoRect.right - gameRect.left - padding,
+      bottom: dinoRect.bottom - gameRect.top - padding,
+      top: dinoRect.top - gameRect.top + padding,
     };
 
     for (const obstacle of obstacles) {
-      const obstacleLeft = obstacle.left;
-      const obstacleRight = obstacle.left + obstacle.width;
-      const obstacleTop = gameRect.height - obstacle.height;
+      const obstacleLeft = obstacle.left + padding;
+      const obstacleRight = obstacle.left + obstacle.width - padding;
+      const obstacleTop = gameRect.height - obstacle.height + padding;
 
       // Collision logic
       if (
@@ -110,15 +114,33 @@ const App = () => {
 
       // Spawn obstacles
       if (timestamp - lastObstacleTimeRef.current > spawnRate) {
-        const height = Math.random() > 0.5 ? 30 : 50;
-        setObstacles((prev) => [
-          ...prev,
+        const height = Math.random() > 0.5 ? 50 : 70; // Larger obstacles
+        const width = 30;
+        const left = gameAreaRef.current.offsetWidth;
+
+        const newObstacles = [
           {
             id: Date.now(),
-            left: gameAreaRef.current.offsetWidth,
+            left: left,
             height: height,
-            width: 20,
+            width: width,
           },
+        ];
+
+        // 40% chance to spawn a second obstacle close to the first one
+        if (Math.random() < 0.4) {
+          const height2 = Math.random() > 0.5 ? 50 : 70;
+          newObstacles.push({
+            id: Date.now() + 1, // Ensure unique ID
+            left: left + width - 5, // Overlap slightly or close gap for "grouped" look
+            height: height2,
+            width: width
+          });
+        }
+
+        setObstacles((prev) => [
+          ...prev,
+          ...newObstacles
         ]);
         lastObstacleTimeRef.current = timestamp;
       }
@@ -133,8 +155,11 @@ const App = () => {
           .filter((obstacle) => obstacle.left > -obstacle.width)
       );
 
-      // Update score
-      setScore((prev) => prev + 1);
+      // Update score - Throttled to every 100ms
+      if (timestamp - lastScoreTimeRef.current > 100) {
+        setScore((prev) => prev + 1);
+        lastScoreTimeRef.current = timestamp;
+      }
 
       // Check for collisions
       if (checkCollision()) {
@@ -157,26 +182,28 @@ const App = () => {
     };
   }, [gameLoop]);
 
+  // Format score to 5 digits
+  const formatScore = (val) => val.toString().padStart(5, '0');
+
   return (
     <div className="game-container">
+      <div className="score-display">
+        <div className="best-score">HI {formatScore(highScore)}</div>
+        <div className="current-score">{formatScore(score)}</div>
+      </div>
       <div ref={gameAreaRef} className="game-area" onClick={() => !gameStarted && startGame()}>
-        {!gameStarted && <div className="start-screen"><p>Press Space to start</p></div>}
+        {!gameStarted && <div className="start-screen"><p>PRESS SPACE TO START</p></div>}
         {gameOver && (
           <div className="game-over">
-            <div className="game-over-score">Score: {score}</div>
-            <div className="game-over-high-score">High Score: {highScore}</div>
-            <div className="game-over-restart" onClick={startGame}>Click here to restart</div>
+            <div>GAME OVER</div>
+            <div className="game-over-restart" onClick={startGame}>Click to Restart</div>
           </div>
         )}
         <div ref={dinoRef} className={`dino ${isJumping ? 'jumping' : ''}`} style={{ bottom: `${dinoPosition}px` }} />
         {obstacles.map((obstacle) => (
           <div key={obstacle.id} className="obstacle" style={{ left: `${obstacle.left}px`, height: `${obstacle.height}px`, width: `${obstacle.width}px`, bottom: '0' }} />
         ))}
-        <div className="ground" />
-      </div>
-      <div className="score-display">
-        <div className="current-score">Score: {score}</div>
-        <div className="best-score">High Score: {highScore}</div>
+        {/* Ground line is handled by border-bottom now, logic kept in CSS */}
       </div>
     </div>
   );
